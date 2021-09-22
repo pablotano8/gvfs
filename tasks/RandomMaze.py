@@ -6,11 +6,18 @@ from tasks import Maze_config
 from mazelab.generators import random_maze
 
 
-def main(env_name='RandomMaze-v0', size=20):
+def main(start_position: str, env_name: str = 'RandomMaze-v0', size: int = 20) -> object:
+    if start_position not in ['goal_position']:
+        raise NotImplementedError('This is not implemented yet')
     gym.envs.register(id=env_name, entry_point=Env, max_episode_steps=200)
     Maze_config.x = random_maze(width=size, height=size, complexity=1, density=0.5)
-    return gym.make(env_name)
+    env = gym.make(env_name)
+    L = env.maze.objects.free.positions
+    Maze_config.goal_idx = [L[np.random.randint(0, len(L))]]
+    if start_position == 'goal_position':
+        Maze_config.start_idx = Maze_config.goal_idx
+    return env, L
 
 
 if __name__ == '__main__':
-    env = main()
+    env, L = main(start_position='goal_position')
