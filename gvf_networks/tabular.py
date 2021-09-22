@@ -41,7 +41,7 @@ class Tabular:
                                         > self.sr[pos[0], pos[1], g]
                                         ) * 1 if (i_depth == 0) else \
                                 np.any(self.gvfs[i_depth - 1, p[0], p[1], g, i_c] > self.threshold_rew) * \
-                                np.all(self.gvfs[i_depth - 1, pos[0], pos[1], g, :] < self.threshold_rew)
+                                np.all(self.gvfs[i_depth - 1, pos[0], pos[1], g, :] < self.threshold_rew) * 1
 
                             self.gvfs[i_depth, pos[0], pos[1], g, i_act] = self.gvfs[
                                                                                i_depth, pos[0], pos[
