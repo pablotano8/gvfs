@@ -53,6 +53,13 @@ class Tabular:
                                                                                 i_depth, pos[0], pos[1], g, i_act]
                                                                             )
 
+    def reset(self):
+        self.Q_gamma[:] = 0
+
+        if self.depth > 0:
+            self.sr[:] = 0
+            self.gvfs[:] = 0
+
 
 if __name__ == '__main__':
     gammas = [0.99]
