@@ -1,6 +1,21 @@
+import numpy
 import numpy as np
 import torch
-from policy_networks.net import reward_to_go
+
+
+def reward_to_go(rewards):
+    n = len(rewards)
+    rtgs = np.zeros_like(rewards)
+    for i in reversed(range(n)):
+        rtgs[i] = rewards[i] + (rtgs[i + 1] if i + 1 < n else 0)
+    return rtgs
+
+
+def format_input(pos, r_pos, size, gvf_net) -> np.array:
+    return np.array([(pos[0] - size / 2) / 25, (pos[1] - size / 2) / 25,
+           (r_pos[0] - size / 2) / 25, (r_pos[1] - size / 2) / 25] + \
+           gvf_net.gvfs[:, pos[0], pos[1], :, :].flatten().tolist() + \
+           gvf_net.Q_gamma[pos[0], pos[1], :, :].flatten().tolist())
 
 
 def train_epoch(i, change, batch_size, env, gvf_net, logits_net, optimizer, device):
@@ -19,11 +34,7 @@ def train_epoch(i, change, batch_size, env, gvf_net, logits_net, optimizer, devi
     while True:
         pos = np.squeeze(env.maze.objects.agent.positions).copy()
         r_pos = np.squeeze(env.maze.objects.goal.positions).copy()
-
-        obs = np.array([(pos[0] - size / 2) / 25, (pos[1] - size / 2) / 25,
-                       (r_pos[0] - size / 2) / 25, (r_pos[1] - size / 2) / 25] + \
-                       gvf_net.gvfs[1:, pos[0], pos[1], :, :].flatten().tolist() + \
-                       gvf_net.Q_gamma[pos[0], pos[1], :, :].flatten().tolist())
+        obs = format_input(pos, r_pos, size, gvf_net)
 
         # save obs
         batch_obs.append(obs)
@@ -68,15 +79,15 @@ def train_epoch(i, change, batch_size, env, gvf_net, logits_net, optimizer, devi
             if len(batch_obs) > batch_size:
                 break
 
-        batch_loss = 0
-        if np.all([(i - k) % change != 0 for k in range(12)]):
-            print(i)
-            optimizer.zero_grad()
-            batch_loss = logits_net.compute_loss(obs=torch.as_tensor(batch_obs, dtype=torch.float32).to(device),
-                                                 act=torch.as_tensor(batch_acts, dtype=torch.int32).to(device),
-                                                 weights=torch.as_tensor(batch_weights, dtype=torch.float32).to(device)
-                                                 )
-            batch_loss.backward()
-            optimizer.step()
+    batch_loss = 0
+    if np.all([(i - k) % change != 0 for k in range(12)]):
+        print(i)
+        optimizer.zero_grad()
+        batch_loss = logits_net.compute_loss(obs=torch.as_tensor(batch_obs, dtype=torch.float32).to(device),
+                                             act=torch.as_tensor(batch_acts, dtype=torch.int32).to(device),
+                                             weights=torch.as_tensor(batch_weights, dtype=torch.float32).to(device)
+                                             )
+        batch_loss.backward()
+        optimizer.step()
 
     return batch_loss, batch_rets, batch_lens
