@@ -18,7 +18,7 @@ def format_input(pos, r_pos, size, gvf_net) -> np.array:
            gvf_net.Q_gamma[pos[0], pos[1], :, :].flatten().tolist())
 
 
-def train_epoch(i, change, batch_size, env, gvf_net, logits_net, optimizer, device):
+def train_epoch(i, change, batch_size, env, gvf_net, logits_net, optimizer, device, nb_episodes_random_policy):
     # shortcuts
     size = gvf_net.size
     num_actions = gvf_net.num_actions
@@ -40,7 +40,7 @@ def train_epoch(i, change, batch_size, env, gvf_net, logits_net, optimizer, devi
         batch_obs.append(obs)
 
         # take action
-        if np.any([(i - k) % change == 0 for k in range(12)]):
+        if np.any([(i - k) % change == 0 for k in range(nb_episodes_random_policy)]):
             act = np.random.randint(num_actions)
         else:
             act = logits_net.get_action(torch.as_tensor(obs, dtype=torch.float32).to(device))
@@ -54,8 +54,9 @@ def train_epoch(i, change, batch_size, env, gvf_net, logits_net, optimizer, devi
         # utility at next position
         utility = np.all(pos_next == r_pos) * 1.
 
-        # update gvfs
-        gvf_net.update(pos, utility, act, pos_next, L)
+        # update gvfs when exploratory phase
+        if np.any([(i - k) % change == 0 for k in range(nb_episodes_random_policy)]):
+            gvf_net.update(pos, utility, act, pos_next, L)
 
         # rescale rewards
         rew = 50 if rew == 1 else -0.2
@@ -80,8 +81,7 @@ def train_epoch(i, change, batch_size, env, gvf_net, logits_net, optimizer, devi
                 break
 
     batch_loss = 0
-    if np.all([(i - k) % change != 0 for k in range(12)]):
-        print(i)
+    if np.all([(i - k) % change != 0 for k in range(nb_episodes_random_policy)]):
         optimizer.zero_grad()
         batch_loss = logits_net.compute_loss(obs=torch.as_tensor(batch_obs, dtype=torch.float32).to(device),
                                              act=torch.as_tensor(batch_acts, dtype=torch.int32).to(device),

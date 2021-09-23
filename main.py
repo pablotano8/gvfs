@@ -18,25 +18,26 @@ else:
     print("no GPU found", flush=True)
 
 # parameters
-gammas = [0.99]
+gammas = [0.98]
 num_actions = 4
-lr = 5e-4
+lr_adam = 5e-4
 env_name = 'RandomMaze-v0'
 size = 20
 depth = 5
-threshold_rew = 0.1
+lr = {'sr': 0.3, 'gvfs': 0.6, 'Q': 0.1}
+thresholds = {'sr': 0.6, 'gvfs': 0.1}
 change = 50  # maze is changed every change epochs
 batch_size = 1000
 nb_epochs = 10000
 
 # declare gvf network
-gvf_net = Tabular(size=size, num_actions=num_actions, depth=depth, gammas=gammas, threshold_rew=threshold_rew)
+gvf_net = Tabular(size=size, num_actions=num_actions, depth=depth, gammas=gammas, thresholds=thresholds, lr=lr)
 
 # declare policy network
 logits_net = PolicyNet(4 + (depth + 1) * num_actions * len(gammas), num_actions).to(device)
 
 # make optimizer
-optimizer = optim.Adam(logits_net.parameters(), lr=lr)
+optimizer = optim.Adam(logits_net.parameters(), lr=lr_adam)
 
 # define environment
 env = RandomMaze.main(env_name=env_name, size=size)
