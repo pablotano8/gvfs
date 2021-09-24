@@ -23,7 +23,8 @@ and copy paste what you have in the `~/.ssh/id_rsa.pub` file.
 Now you should have the permissions.  
 
 ## to set up the git
-create a file gvfs  
+create a folder gvfs  
+
 initialiaze git  
 `git init`  
 
