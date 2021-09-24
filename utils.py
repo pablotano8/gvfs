@@ -90,4 +90,4 @@ def train_epoch(i, change, batch_size, env, gvf_net, logits_net, optimizer, devi
         batch_loss.backward()
         optimizer.step()
 
-    return batch_loss.cpu().detach().numpy(), batch_rets, batch_lens
+    return batch_loss, batch_rets, batch_lens
