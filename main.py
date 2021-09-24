@@ -40,8 +40,7 @@ logits_net = PolicyNet(4 + (depth + 1) * num_actions * len(gammas), num_actions)
 optimizer = optim.Adam(logits_net.parameters(), lr=lr_adam)
 
 # define environment
-env = RandomMaze.main(env_name=env_name, size=size)
-L = env.maze.objects.free.positions
+env, L = RandomMaze.main(env_name=env_name, size=size)
 Maze_config.goal_idx = [L[np.random.randint(0, len(L))]]
 Maze_config.start_idx = Maze_config.goal_idx
 

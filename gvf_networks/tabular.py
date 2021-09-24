@@ -43,9 +43,9 @@ class Tabular:
                             cumulant = (self.sr[p[0], p[1], g] > self.thresholds['sr']
                                         > self.sr[pos[0], pos[1], g]
                                         ) * 1 if (i_depth == 0) else \
-                                np.any(self.gvfs[i_depth - 1, p[0], p[1], g, i_c]) > self.thresholds['gvfs'] * \
-                                np.all(self.gvfs[:i_depth, pos[0], pos[1], g, :]) < self.thresholds['gvfs'] * \
-                                self.sr[pos[0], pos[1], g] < self.thresholds['sr'] * 1
+                                np.any(self.gvfs[i_depth - 1, p[0], p[1], g, i_c] > self.thresholds['gvfs']) * \
+                                np.all(self.gvfs[:i_depth, pos[0], pos[1], g, :] < self.thresholds['gvfs']) * \
+                                (self.sr[pos[0], pos[1], g] < self.thresholds['sr']) * 1
 
                             self.gvfs[i_depth, pos[0], pos[1], g, i_act] = self.gvfs[
                                                                                i_depth, pos[0], pos[
