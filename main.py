@@ -29,6 +29,7 @@ thresholds = {'sr': 0.6, 'gvfs': 0.1}
 change = 50  # maze is changed every change epochs
 batch_size = 1000
 nb_epochs = 10000
+nb_episodes_random_policy = 20
 
 # declare gvf network
 gvf_net = Tabular(size=size, num_actions=num_actions, depth=depth, gammas=gammas, thresholds=thresholds, lr=lr)
@@ -45,4 +46,5 @@ Maze_config.goal_idx = [L[np.random.randint(0, len(L))]]
 Maze_config.start_idx = Maze_config.goal_idx
 
 # first epoch
-batch_loss, batch_rets, batch_lens = train_epoch(0, change, batch_size, env, gvf_net, logits_net, optimizer, device)
+batch_loss, batch_rets, batch_lens = train_epoch(0, change, batch_size, env, gvf_net, logits_net,
+                                                 optimizer, device, nb_episodes_random_policy)
