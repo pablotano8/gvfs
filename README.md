@@ -25,7 +25,7 @@ Now you should have the permissions.
 ## to set up the git
 create a folder gvfs  
 
-initialiaze git  
+initialize git  
 `git init`  
 
 link to git  
