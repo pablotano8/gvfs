@@ -16,7 +16,7 @@ this will create a ssh key present in `~/.ssh/`. Go to that file
 
 Now, you have to add that key to your github account. This is to give your 
 local computer the necessary permissions to interact with github. go to
-`https://github.com/settings/keys`
+`https://github.com/settings/keys` <b>
 press on `New ssh key`
 and copy paste what you have in the `~/.ssh/id_rsa.pub` file.
 
