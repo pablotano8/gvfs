@@ -1,4 +1,3 @@
-import numpy
 import numpy as np
 import torch
 
@@ -30,6 +29,7 @@ def train_epoch(i, change, batch_size, env, gvf_net, logits_net, optimizer, devi
 
     # reset episode
     _, done = env.reset(), False
+    h = torch.zeros(logits_net.hidden_dim, dtype=torch.float32).to(device) if logits_net.name == 'rnn' else None
 
     while True:
         pos = np.squeeze(env.maze.objects.agent.positions).copy()
@@ -43,7 +43,8 @@ def train_epoch(i, change, batch_size, env, gvf_net, logits_net, optimizer, devi
         if np.any([(i - k) % change == 0 for k in range(nb_episodes_random_policy)]):
             act = np.random.randint(num_actions)
         else:
-            act = logits_net.get_action(torch.as_tensor(obs, dtype=torch.float32).to(device))
+            obs = torch.as_tensor(obs, dtype=torch.float32).to(device)
+            act, h = logits_net.get_action(torch.as_tensor(obs, dtype=torch.float32).to(device), h)
 
         # get reward
         _, rew, done, _ = env.step(act)
@@ -75,6 +76,7 @@ def train_epoch(i, change, batch_size, env, gvf_net, logits_net, optimizer, devi
 
             # reset env
             _, done, ep_rews = env.reset(), False, []
+            h = torch.zeros(logits_net.hidden_dim, dtype=torch.float32).to(device) if logits_net.name == 'rnn' else None
 
             # end experience loop if we have enough of it
             if len(batch_obs) > batch_size:
@@ -85,7 +87,8 @@ def train_epoch(i, change, batch_size, env, gvf_net, logits_net, optimizer, devi
         optimizer.zero_grad()
         batch_loss = logits_net.compute_loss(obs=torch.as_tensor(batch_obs, dtype=torch.float32).to(device),
                                              act=torch.as_tensor(batch_acts, dtype=torch.int32).to(device),
-                                             weights=torch.as_tensor(batch_weights, dtype=torch.float32).to(device)
+                                             weights=torch.as_tensor(batch_weights, dtype=torch.float32).to(device),
+                                             lens=torch.as_tensor(batch_lens, dtype=torch.float32).to(device)
                                              )
         batch_loss.backward()
         optimizer.step()

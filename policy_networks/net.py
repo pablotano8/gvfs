@@ -12,27 +12,31 @@ class Net(nn.Module, ABC):
         super(nn.Module, self).__init__()
 
     # make function to compute action distribution
-    def get_policy(self, obs):
+    def get_policy(self, obs, h):
         logits = self.forward(obs)
-        return Categorical(logits=logits)
+        return Categorical(logits=logits), h
 
     # make action selection function (outputs int actions, sampled from policy)
-    def get_action(self, obs):
-        return self.get_policy(obs).sample().item()
+    def get_action(self, obs, h=None):
+        categorical, h = self.get_policy(obs, h)
+        return categorical.sample().item(), h
 
     # make loss function whose gradient, for the right data, is policy gradient
-    def compute_loss(self, obs, act, weights):
-        logp = self.get_policy(obs).log_prob(act)
+    def compute_loss(self, obs, act, weights, lens=None):
+        categorical, _ = self.get_policy(obs, None)
+        logp = categorical.log_prob(act)
         return -(logp * weights).mean()
 
     # get policy for all states
     def get_policy_all_states(self, env, gvf_net, device) -> np.ndarray:
         size = gvf_net.size
         policy_all_states = np.zeros([size, size, gvf_net.num_actions])
+        h = torch.zeros(self.hidden_dim, dtype=torch.float32).to(device) if self.name == 'rnn' else None
         for x_pos in range(size):
             for y_pos in range(size):
                 pos = np.array([x_pos, y_pos])
                 r_pos = np.squeeze(env.maze.objects.goal.positions).copy()
                 obs = torch.as_tensor(format_input(pos, r_pos, size, gvf_net), dtype=torch.float).to(device)
-                policy_all_states[x_pos, y_pos] = self.get_policy(obs).probs.cpu().detach().numpy()
+                categorical, _ = self.get_policy(obs, h)
+                policy_all_states[x_pos, y_pos] = categorical.probs.cpu().detach().numpy()
         return policy_all_states

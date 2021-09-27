@@ -5,6 +5,8 @@ from policy_networks.net import Net
 class PolicyNet(Net):
     def __init__(self, input_shape, n_actions, num_layers=2, nb_units=[64, 64]):
         super(Net, self).__init__()
+        self.name = 'mlp'
+
         # if nb_units is integer create a list of size num_layers
         if isinstance(nb_units, int):
             nb_units = [nb_units] * num_layers
