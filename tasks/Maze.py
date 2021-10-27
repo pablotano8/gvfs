@@ -3,6 +3,7 @@ import numpy as np
 from mazelab import BaseMaze, Object
 from mazelab import DeepMindColor as Color
 from tasks import Maze_config
+import scipy
 
 class Maze(BaseMaze):
 
