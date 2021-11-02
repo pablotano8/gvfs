@@ -21,7 +21,15 @@ class Tabular:
             self.sr = np.zeros([size, size, self.num_gammas])
             self.gvfs = np.zeros([depth, size, size, self.num_gammas, self.num_actions])
 
-    def update(self, pos, utility, act, pos_next, L):
+    def update(self, pos, utility, act, pos_next, L, pi_behav=None, pi_target=None):
+        if (pi_behav is None and pi_target is not None) or (pi_behav is not None and pi_target is None):
+            raise ValueError('pi_behav and pi_target shoud be both None and both specified')
+        if pi_behav is None and pi_target is None:# importance sampling weight for off-policy TD learning
+            IS_weight = 1
+        else:
+            IS_weight = pi_target/pi_behav
+        if np.isnan(IS_weight):
+            raise ValueError('is_weight is NaN')
         for g in range(self.num_gammas):
             self.Q_gamma[pos[0], pos[1], g, act] = self.Q_gamma[pos[0], pos[1], g, act] + \
                                                    self.lr['Q'] * (
@@ -33,8 +41,9 @@ class Tabular:
                                                    )
             if self.depth > 0:
                 self.sr[pos[0], pos[1], g] = self.sr[pos[0], pos[1], g] \
-                                             + self.lr['sr'] * (utility + (1 - utility) * self.gammas[g] * self.sr[
-                                                               pos_next[0], pos_next[1], g] - self.sr[pos[0], pos[1], g]
+                                             + self.lr['sr'] * (utility + (1 - utility) * IS_weight * self.gammas[g] *
+                                                                self.sr[pos_next[0], pos_next[1], g]
+                                                                - self.sr[pos[0], pos[1], g]
                                                                 )
                 for i_depth in range(self.depth):
                     for i_act, p in enumerate(pos + np.array([[1, 0], [-1, 0], [0, -1], [0, 1]])):
@@ -50,7 +59,8 @@ class Tabular:
                             self.gvfs[i_depth, pos[0], pos[1], g, i_act] = self.gvfs[
                                                                                i_depth, pos[0], pos[
                                                                                    1], g, i_act] + self.lr['gvfs'] * \
-                                                                           (cumulant + (1 - cumulant) * self.gammas[g]
+                                                                           (cumulant + (1 - cumulant) * IS_weight
+                                                                            * self.gammas[g]
                                                                             * self.gvfs[
                                                                                 i_depth, p[0], p[1], g, i_act]
                                                                             - self.gvfs[
