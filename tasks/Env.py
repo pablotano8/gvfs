@@ -24,20 +24,31 @@ class Env(BaseEnv):
         if valid:
             self.maze.objects.agent.positions = [new_position]
 
-        if self._is_goal(new_position):
+        if self._is_k1(new_position):
+            self.has_k1 = True
+            
+        if self._is_k2(new_position):
+            self.has_k2 = True
+            
+        if self._is_xf(new_position) and self.has_k2 == True and self.has_k1 == True:
             reward = +1
             done = True
+            self.has_k1, self.has_k2 = False, False
         elif not valid:
             reward = -1
             done = False
         else:
             reward = -0.01
             done = False
-        return self.maze.to_value(), reward, done, {}
+        return self.maze.to_value(), [self.has_k1,self.has_k2, reward], done, {}
 
     def reset(self):
+        self.maze = Maze()
         self.maze.objects.agent.positions = Maze_config.start_idx
-        self.maze.objects.goal.positions = Maze_config.goal_idx
+        self.maze.objects.xf.positions = Maze_config.xf_idx
+        self.maze.objects.k1.positions = Maze_config.k1_idx
+        self.maze.objects.k2.positions = Maze_config.k2_idx
+        self.has_k1, self.has_k2 = False, False
         return self.maze.to_value()
 
     def _is_valid(self, position):
@@ -45,10 +56,26 @@ class Env(BaseEnv):
         within_edge = position[0] < self.maze.size[0] and position[1] < self.maze.size[1]
         passable = not self.maze.to_impassable()[position[0]][position[1]]
         return nonnegative and within_edge and passable
-
-    def _is_goal(self, position):
+    
+    def _is_xf(self, position):
         out = False
-        for pos in self.maze.objects.goal.positions:
+        for pos in self.maze.objects.xf.positions:
+            if position[0] == pos[0] and position[1] == pos[1]:
+                out = True
+                break
+        return out
+    
+    def _is_k1(self, position):
+        out = False
+        for pos in self.maze.objects.k1.positions:
+            if position[0] == pos[0] and position[1] == pos[1]:
+                out = True
+                break
+        return out
+    
+    def _is_k2(self, position):
+        out = False
+        for pos in self.maze.objects.k2.positions:
             if position[0] == pos[0] and position[1] == pos[1]:
                 out = True
                 break
