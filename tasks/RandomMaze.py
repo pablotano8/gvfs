@@ -14,9 +14,11 @@ def main(start_position: str = 'goal_position', env_name: str = 'RandomMaze-v0',
     Maze_config.x = random_maze(width=size, height=size, complexity=1, density=0.5)
     env = gym.make(env_name)
     L = env.maze.objects.free.positions
-    Maze_config.goal_idx = [L[np.random.randint(0, len(L))]]
-    if start_position == 'goal_position':
-        Maze_config.start_idx = Maze_config.goal_idx
+    Maze_config.xf_idx = [L[np.random.randint(0, len(L))]]
+    Maze_config.k1_idx = [L[np.random.randint(0, len(L))]]
+    Maze_config.k2_idx = [L[np.random.randint(0, len(L))]]
+#     if start_position == 'goal_position':
+#         Maze_config.start_idx = Maze_config.xf
     return env, L
 
 
