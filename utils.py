@@ -33,7 +33,6 @@ def train_epoch(i, change, batch_size, env, gvf_net_xf, gvf_net_k1, gvf_net_k2, 
     # reset episode
     _, done = env.reset(), False
     h = torch.zeros(logits_net.hidden_dim, dtype=torch.float32).to(device) if logits_net.name == 'rnn' else None
-
     
     while True:
         pos = np.squeeze(env.maze.objects.agent.positions).copy()

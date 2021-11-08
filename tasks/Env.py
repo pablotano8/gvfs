@@ -34,6 +34,7 @@ class Env(BaseEnv):
             reward = +1
             done = True
             self.has_k1, self.has_k2 = False, False
+            return self.maze.to_value(), [True, True, reward], done, {}
         elif not valid:
             reward = -1
             done = False
