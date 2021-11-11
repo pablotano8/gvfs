@@ -24,13 +24,13 @@ class Env(BaseEnv):
         if valid:
             self.maze.objects.agent.positions = [new_position]
 
-        if self._is_k1(new_position):
+        if self._is_k1(current_position):
             self.has_k1 = True
             
-        if self._is_k2(new_position):
+        if self._is_k2(current_position):
             self.has_k2 = True
             
-        if self._is_xf(new_position) and self.has_k2 == True and self.has_k1 == True:
+        if self._is_xf(current_position) and self.has_k2 == True and self.has_k1 == True:
             reward = +1
             done = True
             self.has_k1, self.has_k2 = False, False

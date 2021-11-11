@@ -5,7 +5,7 @@ class Tabular:
     def __init__(self, size, num_actions=4, depth=6, nb_subgoals_in_state=0,
                  gammas=[0.98],
                  lr={'sr': 0.3, 'gvfs': 0.6, 'Q': 0.1},
-                 thresholds={'sr': 0.6, 'gvfs': 0.1}):
+                 thresholds={'sr': 0.6, 'gvfs': 0.05}):
         self.size = size
         self.num_actions = num_actions
         self.depth = depth
@@ -66,11 +66,14 @@ class Tabular:
                 # successor representation under the default policy
                 has_sr = 1 if (self.nb_subgoals_in_state == 0) else 0
 
-                self.sr[tuple(state) + (g,)] = self.sr[tuple(state) + (g,)] \
+                if has_sr:
+                    self.sr[tuple(state) + (g,)] = self.sr[tuple(state) + (g,)] \
                                                + self.lr['sr'] * (utility + (1 - utility) * 0.25 / pi_behav * has_sr *
                                                                   self.gammas[g] * self.sr[tuple(state_next) + (g,)]
-                                                                  - self.sr[tuple(state) + (g,)]
-                                                                  )
+                                                                  - self.sr[tuple(state) + (g,)])
+                else:
+                    self.sr[tuple(state) + (g,)] = utility
+
                 for i_depth in range(self.depth):
                     if self.nb_subgoals_in_state == 0:
                         assert (self.num_actions == 4), 'navigational gvfs not implemented in the case nb_actions != 4'
@@ -90,7 +93,7 @@ class Tabular:
                                         > self.sr[tuple(state) + (g,)]
                                         ) * 1 if (i_depth == 0) else \
                                 np.any(self.gvfs[(i_depth - 1,) + tuple(p) + (g, i_c)] > self.thresholds['gvfs']) * \
-                                ((not has_sr) or np.all(self.gvfs[(range(i_depth),) + tuple(state) + (g,)] < self.thresholds['gvfs'])) * \
+                                np.all(self.gvfs[(range(i_depth),) + tuple(state) + (g,)] < self.thresholds['gvfs']) * \
                                 (self.sr[tuple(state) + (g,)] < self.thresholds['sr']) * 1
 
                             self.gvfs[(i_depth,) + tuple(state) + (g, i_act)] = self.gvfs[

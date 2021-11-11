@@ -12,7 +12,7 @@ class Net(nn.Module, ABC):
         super(nn.Module, self).__init__()
 
     # make function to compute action distribution
-    def get_policy(self, obs, h):
+    def get_policy(self, obs, h=None):
         logits = self.forward(obs)
         return Categorical(logits=logits), h
 
